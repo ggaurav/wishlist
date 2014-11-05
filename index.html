@@ -1,0 +1,124 @@
+<html>
+  <head>
+    <title>Wishlist App</title>
+    <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.4.3/jquery.min.js"></script>
+    <style>
+      #overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-color: #000;
+        filter:alpha(opacity=50);
+        -moz-opacity:0.5;
+        -khtml-opacity: 0.5;
+        opacity: 1;
+        z-index: 10000;
+        text-align:center;
+        overflow:scroll;
+    }
+    </style>
+  </head>
+
+  <body>
+
+    <div class="container" >  
+    </div>    
+
+  </body>
+  <script>
+  $('document').ready(function(){
+    initPage();     
+    initWishListButton();  
+  });
+
+  function initPage() {
+    wishlist = 0;
+    $.ajax({
+          url: 'getAllItems', 
+          dataType: 'json',
+          async: false,         
+          success: function(res) {            
+            items = res.data;
+            wishlist = res.wishlistItemIds;
+            wishlistHtml = "<button class ='closeWishlist' style='margin-right: 0;float: right;'>close</button><div style='clear:float'></div>";
+            var itemsHtml = "<button class = 'wishlistCount'>" + res.wishlistItemIds.length + "</button><div id = 'overlay' class = 'wishlistContainer' style='display:none'></div>";
+            for (var i = 0; i < items.length; i++) {
+              itemsHtml += "<div class = 'item' item_id = " + items[i].id + ">" +
+                            "<div><img src = " + items[i].img + " style = 'height:200px; width:200px; overflow: hidden;'></img></div>" + 
+                            "<div>" + items[i].title + "</div>"+
+                            "<button class = 'addToWishlistButton'>Add to wishlist</button>"+
+                          "</div> </br></br>";
+              if ($.inArray(items[i].id, wishlist) != -1){
+                  addToWishListHtml(items[i].id)
+              }                          
+            };
+            $('.container').html(itemsHtml)
+            initAddToWishlistButtons();
+          },
+          error:function(resp){
+            alert('Some server error, try again after some time');            
+          }           
+        });                 
+  }
+    
+  function initWishListButton(){
+    $('.wishlistCount').click(function() {            
+            $('.wishlistContainer').html(wishlistHtml);
+            $('.wishlistContainer').show();
+
+            $('.closeWishlist').click(function() {                        
+              $('.wishlistContainer').hide();
+            });           
+        }); 
+
+  }
+
+  function initAddToWishlistButtons(){
+    $('.addToWishlistButton').unbind('click');
+    $('.addToWishlistButton').each(function() {
+      $(this).click(function() {
+          var item_id = $(this).closest('.item').attr('item_id');
+          $.ajax({
+          url: 'addToWishlist?item_id=' + item_id , 
+          dataType: 'json',         
+          success: function(res) {                        
+            console.log('success');                                    
+            oldWishListCount = wishlist.length 
+            wishlist.push(item_id)            
+            wishlist = $.unique(wishlist)
+            wishlistCount = wishlist.length;
+            $('.wishlistCount').html(wishlistCount);
+            if (oldWishListCount != wishlistCount)
+              addToWishListHtml(item_id)
+          },
+          error:function(resp){
+            alert('Some server error, try again after some time');            
+          }           
+        }); 
+      });
+    });    
+  };
+
+  function addToWishListHtml(item_id){
+    var item = findItem(item_id)[0];    
+    wishlistHtml += "<div class = 'item' item_id = " + item.id + ">" +
+                            "<div><img src = " + item.img + " style = 'height:200px; width:200px; overflow: hidden;'></img></div>" + 
+                            "<div style='color:red'>" + item.title + "</div>"+                            
+                          "</div> </br></br>";
+  };
+
+  function findItem(item_id){
+    return $.grep(items, function(item){
+      return item.id == item_id;
+    });
+  };
+
+  function showWishlist(){
+
+  }
+
+  </script>
+</html>
+
