@@ -72,4 +72,4 @@ class CherryController:
 
 if __name__ == '__main__':
 	cherrypy.config.update({'server.socket_host': '127.0.0.1','server.socket_port': 1008})
-	cherrypy.quickstart(CherryController() , "/")	
+	cherrypy.quickstart(CherryController() , "/wishkay")	
